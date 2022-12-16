@@ -1,0 +1,26 @@
+
+log:
+  type: local
+  loglevel: debug
+
+
+hob:
+  devices:
+    - id: Device01
+    - id: Device02
+    - id: Device03
+  locale:
+    country: "NL"
+    timezone: "Europe/Rom"
+    dateformat: "2006/01/02"
+    breaks:
+      - worktime: 6h
+        breaktime: 30m
+      - worktime: 9h
+        breaktime: 15m
+
+aws:
+  s3:
+    region: eu-central-5
+    bucket: test
+    basePath: path
