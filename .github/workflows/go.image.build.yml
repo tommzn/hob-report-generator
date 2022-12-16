@@ -1,0 +1,57 @@
+name: Image Build
+on:
+  create:
+    tags:
+      - v*
+
+jobs:
+  go-build:
+    name: Go Test & Binary Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get Go version
+        run: echo "goversion=`egrep -i '^go [1-2][.][0-9]+$' go.mod | sed 's/go //' | sed 's/$/.x/'`" >> $GITHUB_ENV
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.goversion }}
+      - name: Run tests
+        run: go test -v  -covermode=count ./...
+      - name: Build Binary
+        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -v -o build_artifact_bin
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_artifact_bin
+          path: build_artifact_bin
+          retention-days: 1
+        
+  image-build:
+    name: Build and Deploy Docker Image
+    needs: [go-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Download Golang Binary
+        uses: actions/download-artifact@v2
+        with:
+          name: build_artifact_bin
+      - name: Log in to GitHub Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
+  
+        
