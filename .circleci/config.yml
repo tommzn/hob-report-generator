@@ -1,0 +1,84 @@
+version: 2.1
+
+orbs:
+  aws-ecr: circleci/aws-ecr@7.3.0
+  aws-cli: circleci/aws-cli@2.1.0
+  slack: circleci/slack@4.9.3
+
+jobs:
+  go-build:
+    docker:
+      - image: cimg/go:1.19.0
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: go test -v  -covermode=count ./...
+      - run:
+          name: Build Binary
+          command: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -v -o build_artifact_bin
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build_artifact_bin
+  ecr-build-and-deploy:
+    executor: aws-ecr/default
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - aws-ecr/build-and-push-image:
+          repo: $AWS_ECR_REPOSITORY
+          tag: "${CIRCLE_SHA1},latest"
+          checkout: false
+  lambda-func-update:
+    executor: aws-cli/default
+    steps:
+      - aws-cli/setup
+      - run: 
+          name: Update Lambda Function Image
+          command: aws lambda update-function-code --region $AWS_REGION --function-name $AWS_LAMBDA_FUNCTION --image-uri ${AWS_ECR_ACCOUNT_URL}/${AWS_ECR_REPOSITORY}:latest
+  notify:
+    machine:
+      image: ubuntu-2004:202101-01
+    steps:
+      - slack/notify:
+          template: success_tagged_deploy_1
+
+workflows:
+  version: 2
+  aws-lambda-deploy:
+    jobs:
+      - go-build:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+            branches:
+              only: main
+      - ecr-build-and-deploy:
+          filters:
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+            branches:
+              only: main
+          requires:
+            - go-build
+      - lambda-func-update:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+          requires:
+            - ecr-build-and-deploy
+      - notify: 
+          context: slack-secrets
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+          requires:
+            - lambda-func-update
+          
+          
