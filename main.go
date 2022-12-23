@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	lambda.Start(handler.Run)
+	lambda.Start(handler.HandleEvents)
 }
 
 // bootstrap loads config and other dependencies to creates a reprt generator.
@@ -38,9 +38,7 @@ func bootstrap() (*ReportGenerator, error) {
 	}
 
 	timeTracker := newTimeTracker(awsConf)
-	publisher := newReportPublisher(awsConf)
 	deviceIds := deviceIds(conf)
-	formatter := newReportFormatter()
 	locale := newLocale(conf)
 	calculator := newReportCalulator(locale)
 	calendar, err := newCalendar(conf, secretsManager, locale)
@@ -50,11 +48,10 @@ func bootstrap() (*ReportGenerator, error) {
 
 	return &ReportGenerator{
 		logger:      logger,
+		awsConf:     awsConf,
 		deviceIds:   deviceIds,
 		timeTracker: timeTracker,
 		calculator:  calculator,
-		formatter:   formatter,
-		publisher:   publisher,
 		calendar:    calendar,
 	}, nil
 }
@@ -95,9 +92,6 @@ func getAwsConfig(conf config.Config) (awsConfig, error) {
 	basePath := conf.Get("aws.s3.basepath", nil)
 	return awsConfig{region: region, bucket: bucket, basePath: basePath}, nil
 }
-func newReportPublisher(awsConf awsConfig) timetracker.ReportPublisher {
-	return timetracker.NewS3Publisher(awsConf.region, awsConf.bucket, awsConf.basePath)
-}
 
 // NewLocale creates a new locale from given config.
 func newLocale(conf config.Config) timetracker.Locale {
@@ -132,11 +126,6 @@ func newLocale(conf config.Config) timetracker.Locale {
 // NewReportCalulator will return a new report generator with given dependencies.
 func newReportCalulator(location timetracker.Locale) timetracker.ReportCalculator {
 	return timetracker.NewReportCalulator([]timetracker.TimeTrackingRecord{}, location)
-}
-
-// NewReportFormatter returns an Excel report formatter with default settings.
-func newReportFormatter() timetracker.ReportFormatter {
-	return timetracker.NewExcelReportFormatter()
 }
 
 // DeviceIds extracts a list device ids from passed config.

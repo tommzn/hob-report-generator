@@ -8,6 +8,7 @@ import (
 // ReportGenerator will fetch time tracking records and generates reports.
 type ReportGenerator struct {
 	logger      log.Logger
+	awsConf     awsConfig
 	deviceIds   []string
 	timeTracker timetracker.TimeTracker
 	calculator  timetracker.ReportCalculator

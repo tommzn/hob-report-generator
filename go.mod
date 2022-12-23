@@ -2,14 +2,14 @@ module github.com/tommzn/hob-report-generator
 
 go 1.19
 
-require github.com/tommzn/hob-timetracker v1.1.1
-
 require (
+	github.com/tommzn/hob-timetracker v1.1.3
 	github.com/aws/aws-lambda-go v1.36.0 // indirect
 	github.com/aws/aws-sdk-go v1.44.145 // indirect
 	github.com/calendarific/go-calendarific v0.0.0-20221115171631-30c5173a0a3f // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/golang/protobuf v1.5.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -32,6 +32,7 @@ require (
 	github.com/tommzn/go-log v1.2.2 // indirect
 	github.com/tommzn/go-secrets v1.1.2 // indirect
 	github.com/tommzn/go-utils v1.0.2 // indirect
+	github.com/tommzn/hob-core v1.0.4 // indirect
 	github.com/xuri/efp v0.0.0-20220603152613-6918739fd470 // indirect
 	github.com/xuri/excelize/v2 v2.6.1 // indirect
 	github.com/xuri/nfp v0.0.0-20220409054826-5e722a1d9e22 // indirect
@@ -40,6 +41,7 @@ require (
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

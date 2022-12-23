@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/stretchr/testify/suite"
-	timetracker "github.com/tommzn/hob-timetracker"
 	"testing"
 	"time"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/stretchr/testify/suite"
+	core "github.com/tommzn/hob-core"
+	timetracker "github.com/tommzn/hob-timetracker"
 )
 
 type HandlerTestSuite struct {
@@ -17,10 +19,41 @@ func TestHandlerTestSuite(t *testing.T) {
 	suite.Run(t, new(HandlerTestSuite))
 }
 
-func (suite *HandlerTestSuite) TestGenerateRepor() {
+func (suite *HandlerTestSuite) TestGenerateReport() {
 
 	handler := suite.handlerForTest()
-	suite.Nil(handler.Run(events.CloudWatchEvent{}, context.Background()))
+	event := suite.sqsEventForTest(eventForTest())
+
+	suite.Nil(handler.HandleEvents(context.Background(), event))
+
+	event.Records[0].Body = "xxx"
+	suite.NotNil(handler.HandleEvents(context.Background(), event))
+
+	event2 := suite.sqsEventForTest(eventWithInvalidFormatterForTest())
+	suite.NotNil(handler.HandleEvents(context.Background(), event2))
+
+	event3 := suite.sqsEventForTest(eventWithoutDeliveryForTest())
+	suite.NotNil(handler.HandleEvents(context.Background(), event3))
+
+	event4 := suite.sqsEventForTest(eventWithInvalidTypeForTest())
+	suite.NotNil(handler.HandleEvents(context.Background(), event4))
+}
+
+func (suite *HandlerTestSuite) TestGetReportTimeRange() {
+
+	year := 2022
+	month := 1
+	start1, end1 := reportTimeRange(&core.GenerateReportRequest{Year: int64(year), Month: int64(month)})
+	suite.Equal(1, start1.Day())
+	suite.Equal(31, end1.Day())
+	suite.Equal(month, int(start1.Month()))
+	suite.Equal(month, int(end1.Month()))
+	suite.Equal(year, start1.Year())
+	suite.Equal(year, end1.Year())
+
+	start2, end2 := reportTimeRange(&core.GenerateReportRequest{})
+	suite.Equal(1, start2.Day())
+	suite.True(end2.Day() >= 28)
 }
 
 func (suite *HandlerTestSuite) handlerForTest() *ReportGenerator {
@@ -30,16 +63,14 @@ func (suite *HandlerTestSuite) handlerForTest() *ReportGenerator {
 	logger := loggerForTest()
 
 	deviceIds := deviceIds(conf)
-	formatter := newReportFormatter()
 	calculator := newReportCalulator(locale)
 
 	return &ReportGenerator{
+		awsConf:     awsConfig{},
 		logger:      logger,
 		deviceIds:   deviceIds,
 		timeTracker: timeTrackeForTest(),
 		calculator:  calculator,
-		formatter:   formatter,
-		publisher:   timetracker.NewFilePublisher(),
 	}
 }
 
@@ -54,4 +85,74 @@ func timeTrackeForTest() timetracker.TimeTracker {
 	tracker.Captured(device, timetracker.WORKDAY, firstOfLastMonth)
 	tracker.Captured(device, timetracker.WORKDAY, firstOfLastMonth.Add(7*time.Hour))
 	return tracker
+}
+
+func (suite *HandlerTestSuite) sqsEventForTest(event *core.GenerateReportRequest) events.SQSEvent {
+	eventData, err := core.SerializeEvent(event)
+	suite.Nil(err)
+	return events.SQSEvent{
+		Records: []events.SQSMessage{
+			events.SQSMessage{
+				MessageId:   "<ID>",
+				EventSource: "<Source>",
+				Body:        eventData,
+			},
+		},
+	}
+}
+
+func eventForTest() *core.GenerateReportRequest {
+	return &core.GenerateReportRequest{
+		Format:      core.ReportFormat_EXCEL,
+		Type:        core.ReportType_MONTHLY_REPORT,
+		Year:        2022,
+		Month:       1,
+		NamePattern: "TestReport_200601",
+		Delivery: &core.ReportDelivery{
+			File: &core.FileTarget{
+				Path: "./",
+			},
+		},
+	}
+}
+
+func eventWithInvalidFormatterForTest() *core.GenerateReportRequest {
+	return &core.GenerateReportRequest{
+		Format:      core.ReportFormat_NO_FORMAT,
+		Type:        core.ReportType_MONTHLY_REPORT,
+		Year:        2022,
+		Month:       1,
+		NamePattern: "TestReport_200601",
+		Delivery: &core.ReportDelivery{
+			File: &core.FileTarget{
+				Path: "./",
+			},
+		},
+	}
+}
+
+func eventWithoutDeliveryForTest() *core.GenerateReportRequest {
+	return &core.GenerateReportRequest{
+		Format:      core.ReportFormat_EXCEL,
+		Type:        core.ReportType_MONTHLY_REPORT,
+		Year:        2022,
+		Month:       1,
+		NamePattern: "TestReport_200601",
+		Delivery:    &core.ReportDelivery{},
+	}
+}
+
+func eventWithInvalidTypeForTest() *core.GenerateReportRequest {
+	return &core.GenerateReportRequest{
+		Format:      core.ReportFormat_EXCEL,
+		Type:        core.ReportType_NO_TYPE,
+		Year:        2022,
+		Month:       1,
+		NamePattern: "TestReport_200601",
+		Delivery: &core.ReportDelivery{
+			File: &core.FileTarget{
+				Path: "./",
+			},
+		},
+	}
 }

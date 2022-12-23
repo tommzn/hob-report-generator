@@ -1,13 +1,15 @@
 package main
 
 import (
+	"os"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/suite"
 	config "github.com/tommzn/go-config"
 	log "github.com/tommzn/go-log"
 	secrets "github.com/tommzn/go-secrets"
-	"os"
-	"testing"
-	"time"
+	core "github.com/tommzn/hob-core"
 )
 
 type BootstrapTestSuite struct {
@@ -70,10 +72,63 @@ func (suite *BootstrapTestSuite) TestCreateCalendar() {
 	suite.Nil(err2)
 }
 
-func (suite *BootstrapTestSuite) TestGetDeviceIds() {
+func (suite *BootstrapTestSuite) TestNewReportFormatter() {
 
-	ids := deviceIds(configForTest())
-	suite.Len(ids, 3)
+	formatter1, err1 := newReportFormatter(&core.GenerateReportRequest{Format: core.ReportFormat_EXCEL})
+	suite.NotNil(formatter1)
+	suite.Nil(err1)
+
+	formatter2, err2 := newReportFormatter(&core.GenerateReportRequest{Format: core.ReportFormat_NO_FORMAT})
+	suite.Nil(formatter2)
+	suite.NotNil(err2)
+}
+
+func (suite *BootstrapTestSuite) TestNewReportPublisher() {
+
+	request1 := &core.GenerateReportRequest{
+		Delivery: &core.ReportDelivery{
+			S3: &core.S3Target{
+				Region: "eu-central-5",
+				Bucket: "bucket",
+				Path:   "/base_path/",
+			},
+		},
+	}
+	formatter1, err1 := newReportPublisher(awsConfig{}, request1)
+	suite.NotNil(formatter1)
+	suite.Nil(err1)
+
+	request1_1 := &core.GenerateReportRequest{
+		Delivery: &core.ReportDelivery{
+			S3: &core.S3Target{},
+		},
+	}
+	awsConf := awsConfig{
+		region:   asStringPtr("eu-central-5"),
+		bucket:   asStringPtr("bucket"),
+		basePath: asStringPtr("/base_path/"),
+	}
+	formatter1_1, err1_1 := newReportPublisher(awsConf, request1_1)
+	suite.NotNil(formatter1_1)
+	suite.Nil(err1_1)
+
+	request2 := &core.GenerateReportRequest{
+		Delivery: &core.ReportDelivery{
+			File: &core.FileTarget{
+				Path: "/tmp(",
+			},
+		},
+	}
+	formatter2, err2 := newReportPublisher(awsConfig{}, request2)
+	suite.NotNil(formatter2)
+	suite.Nil(err2)
+
+	request3 := &core.GenerateReportRequest{
+		Delivery: &core.ReportDelivery{},
+	}
+	formatter3, err3 := newReportPublisher(awsConfig{}, request3)
+	suite.Nil(formatter3)
+	suite.NotNil(err3)
 }
 
 func configForTest() config.Config {
@@ -97,4 +152,8 @@ func loggerForTest() log.Logger {
 
 func secretsManagerForTest() secrets.SecretsManager {
 	return &secrets.EnvironmentSecretsManager{}
+}
+
+func asStringPtr(s string) *string {
+	return &s
 }
