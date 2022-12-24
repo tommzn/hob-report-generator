@@ -94,6 +94,7 @@ func (handler *ReportGenerator) GenerateMonthlyReport(request *core.GenerateRepo
 	}
 
 	reportFileName := timeRangeStart.Format(request.NamePattern) + handler.formatter.FileExtension()
+	handler.logger.Debugf("Publish %s using %T", reportFileName, handler.publisher)
 	return handler.publisher.Send(reportBuffer.Bytes(), reportFileName)
 }
 
