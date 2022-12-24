@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	log "github.com/tommzn/go-log"
 	core "github.com/tommzn/hob-core"
 	timetracker "github.com/tommzn/hob-timetracker"
 )
@@ -33,7 +34,7 @@ func (handler *ReportGenerator) HandleEvents(ctx context.Context, sqsEvent event
 		}
 		handler.formatter = formatter
 
-		publisher, err := newReportPublisher(handler.awsConf, request)
+		publisher, err := newReportPublisher(handler.awsConf, request, handler.logger)
 		if err != nil {
 			handler.logger.Error("Unable to create publisher, reason: ", err)
 			return err
@@ -128,7 +129,7 @@ func newReportFormatter(request *core.GenerateReportRequest) (timetracker.Report
 }
 
 // NewReportPublisher returns a publisher to ditribute a report to a target defined in given report generate request.
-func newReportPublisher(awsConf awsConfig, request *core.GenerateReportRequest) (timetracker.ReportPublisher, error) {
+func newReportPublisher(awsConf awsConfig, request *core.GenerateReportRequest, logger log.Logger) (timetracker.ReportPublisher, error) {
 
 	if request.Delivery.S3 != nil {
 
@@ -146,11 +147,11 @@ func newReportPublisher(awsConf awsConfig, request *core.GenerateReportRequest) 
 		if request.Delivery.S3.Path != "" {
 			basePath = &request.Delivery.S3.Path
 		}
-		return timetracker.NewS3Publisher(region, bucket, basePath), nil
+		return timetracker.NewS3Publisher(region, bucket, basePath, logger), nil
 	}
 
 	if request.Delivery.File != nil {
-		return timetracker.NewFilePublisher(&request.Delivery.File.Path), nil
+		return timetracker.NewFilePublisher(&request.Delivery.File.Path, logger), nil
 	}
 
 	return nil, errors.New("No report delivery defined!")

@@ -94,7 +94,7 @@ func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 			},
 		},
 	}
-	formatter1, err1 := newReportPublisher(awsConfig{}, request1)
+	formatter1, err1 := newReportPublisher(awsConfig{}, request1, loggerForTest())
 	suite.NotNil(formatter1)
 	suite.Nil(err1)
 
@@ -108,7 +108,7 @@ func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 		bucket:   asStringPtr("bucket"),
 		basePath: asStringPtr("/base_path/"),
 	}
-	formatter1_1, err1_1 := newReportPublisher(awsConf, request1_1)
+	formatter1_1, err1_1 := newReportPublisher(awsConf, request1_1, loggerForTest())
 	suite.NotNil(formatter1_1)
 	suite.Nil(err1_1)
 
@@ -119,14 +119,14 @@ func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 			},
 		},
 	}
-	formatter2, err2 := newReportPublisher(awsConfig{}, request2)
+	formatter2, err2 := newReportPublisher(awsConfig{}, request2, loggerForTest())
 	suite.NotNil(formatter2)
 	suite.Nil(err2)
 
 	request3 := &core.GenerateReportRequest{
 		Delivery: &core.ReportDelivery{},
 	}
-	formatter3, err3 := newReportPublisher(awsConfig{}, request3)
+	formatter3, err3 := newReportPublisher(awsConfig{}, request3, loggerForTest())
 	suite.Nil(formatter3)
 	suite.NotNil(err3)
 }
