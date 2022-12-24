@@ -22,22 +22,26 @@ func (handler *ReportGenerator) HandleEvents(ctx context.Context, sqsEvent event
 
 		request := &core.GenerateReportRequest{}
 		if err := core.DeserializeEvent(message.Body, request); err != nil {
+			handler.logger.Error("Unable to deserialize event, reason: ", err)
 			return err
 		}
 
 		formatter, err := newReportFormatter(request)
 		if err != nil {
+			handler.logger.Error("Unable to create formatter, reason: ", err)
 			return err
 		}
 		handler.formatter = formatter
 
 		publisher, err := newReportPublisher(handler.awsConf, request)
 		if err != nil {
+			handler.logger.Error("Unable to create publisher, reason: ", err)
 			return err
 		}
 		handler.publisher = publisher
 
 		if err := handler.GenerateReport(request); err != nil {
+			handler.logger.Error("Unable to generate report, reason: ", err)
 			return err
 		}
 	}
@@ -129,17 +133,17 @@ func newReportPublisher(awsConf awsConfig, request *core.GenerateReportRequest) 
 	if request.Delivery.S3 != nil {
 
 		region := awsConf.region
-		if request.Delivery.S3.Region == "" {
+		if request.Delivery.S3.Region != "" {
 			region = &request.Delivery.S3.Region
 		}
 
 		bucket := awsConf.bucket
-		if request.Delivery.S3.Bucket == "" {
+		if request.Delivery.S3.Bucket != "" {
 			bucket = &request.Delivery.S3.Bucket
 		}
 
 		basePath := awsConf.basePath
-		if request.Delivery.S3.Path == "" {
+		if request.Delivery.S3.Path != "" {
 			basePath = &request.Delivery.S3.Path
 		}
 		return timetracker.NewS3Publisher(region, bucket, basePath), nil
