@@ -19,6 +19,7 @@ func (handler *ReportGenerator) HandleEvents(ctx context.Context, sqsEvent event
 
 	for _, message := range sqsEvent.Records {
 
+		handler.logger.Debugf("Receive: %+v", message)
 		handler.logger.Debugf("Process message %s for event source %s", message.MessageId, message.EventSource)
 
 		request := &core.GenerateReportRequest{}
