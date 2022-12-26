@@ -21,3 +21,7 @@ type ReportGenerator struct {
 type awsConfig struct {
 	region, bucket, basePath *string
 }
+
+type awsEventBridgeTrigger struct {
+	Content string `json:"content"`
+}

@@ -56,6 +56,16 @@ func (suite *HandlerTestSuite) TestGetReportTimeRange() {
 	suite.True(end2.Day() >= 28)
 }
 
+func (suite *HandlerTestSuite) TestUnwrapAwsEventBridgeTrigger() {
+
+	content := "xyz"
+	unwrap1 := unwrapAwsEventBridgeTrigger(content)
+	suite.Equal(content, unwrap1)
+
+	unwrap2 := unwrapAwsEventBridgeTrigger("{\"content\":\"" + content + "\"}")
+	suite.Equal(content, unwrap2)
+}
+
 func (suite *HandlerTestSuite) handlerForTest() *ReportGenerator {
 
 	conf := configForTest()

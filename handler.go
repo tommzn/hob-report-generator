@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -23,7 +24,8 @@ func (handler *ReportGenerator) HandleEvents(ctx context.Context, sqsEvent event
 		handler.logger.Debugf("Process message %s for event source %s", message.MessageId, message.EventSource)
 
 		request := &core.GenerateReportRequest{}
-		if err := core.DeserializeEvent(message.Body, request); err != nil {
+		content := unwrapAwsEventBridgeTrigger(message.Body)
+		if err := core.DeserializeEvent(content, request); err != nil {
 			handler.logger.Error("Unable to deserialize event, reason: ", err)
 			return err
 		}
@@ -156,4 +158,12 @@ func newReportPublisher(awsConf awsConfig, request *core.GenerateReportRequest, 
 	}
 
 	return nil, errors.New("No report delivery defined!")
+}
+
+func unwrapAwsEventBridgeTrigger(messageBody string) string {
+	trigger := awsEventBridgeTrigger{}
+	if err := json.Unmarshal(([]byte(messageBody)), &trigger); err == nil && len(trigger.Content) > 0 {
+		return trigger.Content
+	}
+	return messageBody
 }
