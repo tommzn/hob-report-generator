@@ -5,6 +5,8 @@ log:
 
 
 hob:
+  email:  
+    source: user@example.com
   devices:
     - id: Device01
     - id: Device02

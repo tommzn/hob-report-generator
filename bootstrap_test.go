@@ -10,6 +10,7 @@ import (
 	log "github.com/tommzn/go-log"
 	secrets "github.com/tommzn/go-secrets"
 	core "github.com/tommzn/hob-core"
+	timetracker "github.com/tommzn/hob-timetracker"
 )
 
 type BootstrapTestSuite struct {
@@ -85,6 +86,8 @@ func (suite *BootstrapTestSuite) TestNewReportFormatter() {
 
 func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 
+	handler := &ReportGenerator{awsConf: awsConfig{}, conf: configForTest(), logger: loggerForTest()}
+
 	request1 := &core.GenerateReportRequest{
 		Delivery: &core.ReportDelivery{
 			S3: &core.S3Target{
@@ -94,7 +97,7 @@ func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 			},
 		},
 	}
-	formatter1, err1 := newReportPublisher(awsConfig{}, request1, loggerForTest())
+	formatter1, err1 := handler.newReportPublisher(request1)
 	suite.NotNil(formatter1)
 	suite.Nil(err1)
 
@@ -103,12 +106,12 @@ func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 			S3: &core.S3Target{},
 		},
 	}
-	awsConf := awsConfig{
+	handler.awsConf = awsConfig{
 		region:   asStringPtr("eu-central-5"),
 		bucket:   asStringPtr("bucket"),
 		basePath: asStringPtr("/base_path/"),
 	}
-	formatter1_1, err1_1 := newReportPublisher(awsConf, request1_1, loggerForTest())
+	formatter1_1, err1_1 := handler.newReportPublisher(request1_1)
 	suite.NotNil(formatter1_1)
 	suite.Nil(err1_1)
 
@@ -119,16 +122,28 @@ func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 			},
 		},
 	}
-	formatter2, err2 := newReportPublisher(awsConfig{}, request2, loggerForTest())
+	formatter2, err2 := handler.newReportPublisher(request2)
 	suite.NotNil(formatter2)
 	suite.Nil(err2)
 
 	request3 := &core.GenerateReportRequest{
 		Delivery: &core.ReportDelivery{},
 	}
-	formatter3, err3 := newReportPublisher(awsConfig{}, request3, loggerForTest())
+	formatter3, err3 := handler.newReportPublisher(request3)
 	suite.Nil(formatter3)
 	suite.NotNil(err3)
+
+	request4 := &core.GenerateReportRequest{
+		Delivery: &core.ReportDelivery{
+			Mail: &core.MailTarget{
+				ToAddresses: []string{"user@example.com"},
+			},
+		},
+	}
+	formatter4, err4 := handler.newReportPublisher(request4)
+	suite.NotNil(formatter4)
+	suite.IsType(&timetracker.EMailPublisher{}, formatter4)
+	suite.Nil(err4)
 }
 
 func configForTest() config.Config {
