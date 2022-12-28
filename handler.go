@@ -28,6 +28,7 @@ func (handler *ReportGenerator) HandleEvents(ctx context.Context, sqsEvent event
 			handler.logger.Error("Unable to deserialize event, reason: ", err)
 			return err
 		}
+		handler.logger.Debugf("Request: %+v", request)
 
 		formatter, err := newReportFormatter(request)
 		if err != nil {
