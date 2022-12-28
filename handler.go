@@ -103,7 +103,12 @@ func (handler *ReportGenerator) GenerateMonthlyReport(request *core.GenerateRepo
 
 	reportFileName := timeRangeStart.Format(request.NamePattern) + handler.formatter.FileExtension()
 	handler.logger.Debugf("Publish %s using %T", reportFileName, handler.publisher)
-	return handler.publisher.Send(reportBuffer.Bytes(), reportFileName)
+	for _, publisher := range handler.publisher {
+		if err := publisher.Send(reportBuffer.Bytes(), reportFileName); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ReportTimeRange generates first amd last day for report time range.
@@ -132,7 +137,9 @@ func newReportFormatter(request *core.GenerateReportRequest) (timetracker.Report
 }
 
 // NewReportPublisher returns a publisher to ditribute a report to a target defined in given report generate request.
-func (handler *ReportGenerator) newReportPublisher(request *core.GenerateReportRequest) (timetracker.ReportPublisher, error) {
+func (handler *ReportGenerator) newReportPublisher(request *core.GenerateReportRequest) ([]timetracker.ReportPublisher, error) {
+
+	publisher := []timetracker.ReportPublisher{}
 
 	if request.Delivery.Mail != nil && len(request.Delivery.Mail.ToAddresses) > 0 {
 
@@ -140,7 +147,7 @@ func (handler *ReportGenerator) newReportPublisher(request *core.GenerateReportR
 		subject := startTime.Format("Time Tracking Report 200601")
 		message := "<p>PFA your monthly time tracking report!</p></br>"
 		if source := handler.conf.Get("hob.email.source", nil); source != nil {
-			return timetracker.NewEMailPublisher(*source, request.Delivery.Mail.ToAddresses[0], subject, message), nil
+			publisher = append(publisher, timetracker.NewEMailPublisher(*source, request.Delivery.Mail.ToAddresses[0], subject, message))
 		}
 		handler.logger.Debug("No email source defined!")
 	}
@@ -161,14 +168,19 @@ func (handler *ReportGenerator) newReportPublisher(request *core.GenerateReportR
 		if request.Delivery.S3.Path != "" {
 			basePath = &request.Delivery.S3.Path
 		}
-		return timetracker.NewS3Publisher(region, bucket, basePath, handler.logger), nil
+		publisher = append(publisher, timetracker.NewS3Publisher(region, bucket, basePath, handler.logger))
 	}
 
 	if request.Delivery.File != nil {
-		return timetracker.NewFilePublisher(&request.Delivery.File.Path, handler.logger), nil
+		publisher = append(publisher, timetracker.NewFilePublisher(&request.Delivery.File.Path, handler.logger))
 	}
 
-	return nil, errors.New("No report delivery defined!")
+	if len(publisher) > 0 {
+		return publisher, nil
+
+	} else {
+		return publisher, errors.New("No report delivery defined!")
+	}
 }
 
 func unwrapAwsEventBridgeTrigger(messageBody string) string {

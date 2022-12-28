@@ -97,8 +97,8 @@ func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 			},
 		},
 	}
-	formatter1, err1 := handler.newReportPublisher(request1)
-	suite.NotNil(formatter1)
+	publisher1, err1 := handler.newReportPublisher(request1)
+	suite.NotNil(publisher1)
 	suite.Nil(err1)
 
 	request1_1 := &core.GenerateReportRequest{
@@ -111,8 +111,8 @@ func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 		bucket:   asStringPtr("bucket"),
 		basePath: asStringPtr("/base_path/"),
 	}
-	formatter1_1, err1_1 := handler.newReportPublisher(request1_1)
-	suite.NotNil(formatter1_1)
+	publisher1_1, err1_1 := handler.newReportPublisher(request1_1)
+	suite.NotNil(publisher1_1)
 	suite.Nil(err1_1)
 
 	request2 := &core.GenerateReportRequest{
@@ -122,15 +122,15 @@ func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 			},
 		},
 	}
-	formatter2, err2 := handler.newReportPublisher(request2)
-	suite.NotNil(formatter2)
+	publisher2, err2 := handler.newReportPublisher(request2)
+	suite.NotNil(publisher2)
 	suite.Nil(err2)
 
 	request3 := &core.GenerateReportRequest{
 		Delivery: &core.ReportDelivery{},
 	}
-	formatter3, err3 := handler.newReportPublisher(request3)
-	suite.Nil(formatter3)
+	publisher3, err3 := handler.newReportPublisher(request3)
+	suite.Len(publisher3, 0)
 	suite.NotNil(err3)
 
 	request4 := &core.GenerateReportRequest{
@@ -140,10 +140,13 @@ func (suite *BootstrapTestSuite) TestNewReportPublisher() {
 			},
 		},
 	}
-	formatter4, err4 := handler.newReportPublisher(request4)
-	suite.NotNil(formatter4)
-	suite.IsType(&timetracker.EMailPublisher{}, formatter4)
+	publisher4, err4 := handler.newReportPublisher(request4)
+	suite.NotNil(publisher4)
+	suite.Len(publisher4, 1)
+	suite.IsType(&timetracker.EMailPublisher{}, publisher4[0])
 	suite.Nil(err4)
+	suite.NotNil(publisher4[0].(*timetracker.EMailPublisher).Source)
+	suite.True(len(publisher4[0].(*timetracker.EMailPublisher).Source) > 0)
 }
 
 func configForTest() config.Config {

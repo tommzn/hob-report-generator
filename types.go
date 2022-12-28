@@ -15,7 +15,7 @@ type ReportGenerator struct {
 	timeTracker timetracker.TimeTracker
 	calculator  timetracker.ReportCalculator
 	formatter   timetracker.ReportFormatter
-	publisher   timetracker.ReportPublisher
+	publisher   []timetracker.ReportPublisher
 	calendar    timetracker.Calendar
 }
 
