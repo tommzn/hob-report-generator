@@ -48,6 +48,7 @@ func bootstrap() (*ReportGenerator, error) {
 
 	return &ReportGenerator{
 		logger:      logger,
+		conf:        conf,
 		awsConf:     awsConf,
 		deviceIds:   deviceIds,
 		timeTracker: timeTracker,

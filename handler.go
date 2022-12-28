@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
-	log "github.com/tommzn/go-log"
 	core "github.com/tommzn/hob-core"
 	timetracker "github.com/tommzn/hob-timetracker"
 )
@@ -37,7 +36,7 @@ func (handler *ReportGenerator) HandleEvents(ctx context.Context, sqsEvent event
 		}
 		handler.formatter = formatter
 
-		publisher, err := newReportPublisher(handler.awsConf, request, handler.logger)
+		publisher, err := handler.newReportPublisher(request)
 		if err != nil {
 			handler.logger.Error("Unable to create publisher, reason: ", err)
 			return err
@@ -132,29 +131,39 @@ func newReportFormatter(request *core.GenerateReportRequest) (timetracker.Report
 }
 
 // NewReportPublisher returns a publisher to ditribute a report to a target defined in given report generate request.
-func newReportPublisher(awsConf awsConfig, request *core.GenerateReportRequest, logger log.Logger) (timetracker.ReportPublisher, error) {
+func (handler *ReportGenerator) newReportPublisher(request *core.GenerateReportRequest) (timetracker.ReportPublisher, error) {
+
+	if request.Delivery.Mail != nil && len(request.Delivery.Mail.ToAddresses) > 0 {
+
+		startTime, _ := reportTimeRange(request)
+		subject := startTime.Format("Time Tracking Report 200601")
+		message := "<p>PFA your monthly time tracking report!</p></br>"
+		if source := handler.conf.Get("hob.email.source", nil); source != nil {
+			return timetracker.NewEMailPublisher(*source, request.Delivery.Mail.ToAddresses[0], subject, message), nil
+		}
+	}
 
 	if request.Delivery.S3 != nil {
 
-		region := awsConf.region
+		region := handler.awsConf.region
 		if request.Delivery.S3.Region != "" {
 			region = &request.Delivery.S3.Region
 		}
 
-		bucket := awsConf.bucket
+		bucket := handler.awsConf.bucket
 		if request.Delivery.S3.Bucket != "" {
 			bucket = &request.Delivery.S3.Bucket
 		}
 
-		basePath := awsConf.basePath
+		basePath := handler.awsConf.basePath
 		if request.Delivery.S3.Path != "" {
 			basePath = &request.Delivery.S3.Path
 		}
-		return timetracker.NewS3Publisher(region, bucket, basePath, logger), nil
+		return timetracker.NewS3Publisher(region, bucket, basePath, handler.logger), nil
 	}
 
 	if request.Delivery.File != nil {
-		return timetracker.NewFilePublisher(&request.Delivery.File.Path, logger), nil
+		return timetracker.NewFilePublisher(&request.Delivery.File.Path, handler.logger), nil
 	}
 
 	return nil, errors.New("No report delivery defined!")

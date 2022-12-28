@@ -2,10 +2,11 @@ module github.com/tommzn/hob-report-generator
 
 go 1.19
 
+require github.com/tommzn/hob-timetracker v1.3.0
+
 require (
-	github.com/tommzn/hob-timetracker v1.2.0
 	github.com/aws/aws-lambda-go v1.36.0 // indirect
-	github.com/aws/aws-sdk-go v1.44.145 // indirect
+	github.com/aws/aws-sdk-go v1.44.168 // indirect
 	github.com/calendarific/go-calendarific v0.0.0-20221115171631-30c5173a0a3f // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
