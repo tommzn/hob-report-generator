@@ -142,6 +142,7 @@ func (handler *ReportGenerator) newReportPublisher(request *core.GenerateReportR
 		if source := handler.conf.Get("hob.email.source", nil); source != nil {
 			return timetracker.NewEMailPublisher(*source, request.Delivery.Mail.ToAddresses[0], subject, message), nil
 		}
+		handler.logger.Debug("No email source defined!")
 	}
 
 	if request.Delivery.S3 != nil {
