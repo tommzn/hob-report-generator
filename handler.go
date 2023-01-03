@@ -95,6 +95,7 @@ func (handler *ReportGenerator) GenerateMonthlyReport(request *core.GenerateRepo
 	if err != nil {
 		return err
 	}
+	handler.logger.Debugf("MonthlyReport: %+v", monthlyReport)
 
 	reportBuffer, err := handler.formatter.WriteMonthlyReportToBuffer(monthlyReport)
 	if err != nil {
