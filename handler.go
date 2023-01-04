@@ -85,6 +85,9 @@ func (handler *ReportGenerator) GenerateMonthlyReport(request *core.GenerateRepo
 	}
 	handler.calculator.WithTimeTrackingRecords(timeTrackingRecords)
 
+	recordsJson, _ := json.Marshal(timeTrackingRecords)
+	handler.logger.Debugf("TimeTrackingRecords: %s", string(recordsJson))
+
 	if handler.calendar != nil {
 		if holidays, err := handler.calendar.GetHolidays(year, month); err == nil {
 			handler.formatter.WithHolidays(holidays)
