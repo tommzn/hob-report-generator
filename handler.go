@@ -44,6 +44,10 @@ func (handler *ReportGenerator) HandleEvents(ctx context.Context, sqsEvent event
 		}
 		handler.publisher = publisher
 
+		if len(request.DeviceIds) == 0 {
+			request.DeviceIds = handler.deviceIds
+		}
+
 		if err := handler.GenerateReport(request); err != nil {
 			handler.logger.Error("Unable to generate report, reason: ", err)
 			return err
@@ -76,7 +80,7 @@ func (handler *ReportGenerator) GenerateMonthlyReport(request *core.GenerateRepo
 	year := timeRangeStart.Year()
 	month := int(timeRangeStart.Month())
 	var timeTrackingRecords []timetracker.TimeTrackingRecord
-	for _, deviceId := range handler.deviceIds {
+	for _, deviceId := range request.DeviceIds {
 		deviceRecords, err := handler.timeTracker.ListRecords(deviceId, timeRangeStart, timeRangeEnd)
 		if err != nil {
 			return err

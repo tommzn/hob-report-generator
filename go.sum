@@ -233,6 +233,8 @@ github.com/tommzn/hob-core v1.0.3 h1:9Ns/x+njuxLSrcvP2zVtuYjX9jxilWDFsVHde+rfw7E
 github.com/tommzn/hob-core v1.0.3/go.mod h1:wNkndU5CZu9F+CqRBg6cey+9HKe2pFeqE7dJxe5gPXM=
 github.com/tommzn/hob-core v1.0.4 h1:MmIHlIbqw8IZTMu8GE3R/l4pYdlUOCKSOYgRvt38eT8=
 github.com/tommzn/hob-core v1.0.4/go.mod h1:wNkndU5CZu9F+CqRBg6cey+9HKe2pFeqE7dJxe5gPXM=
+github.com/tommzn/hob-core v1.0.5 h1:DCVauwXU4nHlBI4n1lfWL+l/TR3nDK0uCZA/5YViEBc=
+github.com/tommzn/hob-core v1.0.5/go.mod h1:wNkndU5CZu9F+CqRBg6cey+9HKe2pFeqE7dJxe5gPXM=
 github.com/tommzn/hob-timetracker v1.1.0 h1:VUwYH2GZFkTHXOCNJjHIkSktW6qfkg5l5c7SP5aeD3A=
 github.com/tommzn/hob-timetracker v1.1.0/go.mod h1:Ibs+8k7LiTqGOxDqxskNcNDxjJ4ezeXPu/cJ0VbMHe0=
 github.com/tommzn/hob-timetracker v1.1.1 h1:++zjSK0po23FDZS8mtnElSO9jiQJ8XBoFmHShZG/CnM=
