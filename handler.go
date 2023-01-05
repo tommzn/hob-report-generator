@@ -98,7 +98,8 @@ func (handler *ReportGenerator) GenerateMonthlyReport(request *core.GenerateRepo
 	if err != nil {
 		return err
 	}
-	handler.logger.Debugf("MonthlyReport: %+v", monthlyReport)
+	monthlyReportJson, _ := json.Marshal(monthlyReport)
+	handler.logger.Debugf("MonthlyReport: %s", string(monthlyReportJson))
 
 	reportBuffer, err := handler.formatter.WriteMonthlyReportToBuffer(monthlyReport)
 	if err != nil {
