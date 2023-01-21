@@ -1,0 +1,11 @@
+name: "Go Security Scan"
+
+on:
+  push:
+  schedule:
+  - cron: '0 0 * * 0'
+
+jobs:
+  go-image-build:
+    uses:  tommzn/github-ci/.github/workflows/gosec.yml@v1.0.7
+    
