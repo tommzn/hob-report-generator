@@ -6,6 +6,9 @@ on:
   - cron: '0 0 * * 0'
 
 jobs:
-  go-image-build:
-    uses:  tommzn/github-ci/.github/workflows/gosec.yml@v1.0.7
+  gosec-scan:
+    uses:  tommzn/github-ci/.github/workflows/gosec.yml@v1.0.8
+    secrets:
+      slack-channel: ${{ secrets.SLACK_CHANNEL }}
+      slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
     
