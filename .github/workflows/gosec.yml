@@ -7,7 +7,7 @@ on:
 
 jobs:
   gosec-scan:
-    uses:  tommzn/github-ci/.github/workflows/gosec.yml@v1.0.12
+    uses:  tommzn/github-ci/.github/workflows/gosec.yml@v1.0.13
     secrets:
       slack-channel: ${{ secrets.SLACK_CHANNEL }}
       slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
