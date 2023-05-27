@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	log "github.com/tommzn/go-log"
 	core "github.com/tommzn/hob-core"
 	timetracker "github.com/tommzn/hob-timetracker"
 )
@@ -30,7 +31,7 @@ func (handler *ReportGenerator) HandleEvents(ctx context.Context, sqsEvent event
 		}
 		handler.logger.Debugf("Request: %+v", request)
 
-		formatter, err := newReportFormatter(request)
+		formatter, err := newReportFormatter(request, handler.logger)
 		if err != nil {
 			handler.logger.Error("Unable to create formatter, reason: ", err)
 			return err
@@ -135,11 +136,11 @@ func reportTimeRange(request *core.GenerateReportRequest) (time.Time, time.Time)
 }
 
 // NewReportFormatter returns an Excel report formatter with default settings.
-func newReportFormatter(request *core.GenerateReportRequest) (timetracker.ReportFormatter, error) {
+func newReportFormatter(request *core.GenerateReportRequest, logger log.Logger) (timetracker.ReportFormatter, error) {
 
 	switch request.Format {
 	case core.ReportFormat_EXCEL:
-		return timetracker.NewExcelReportFormatter(), nil
+		return timetracker.NewExcelReportFormatter(logger), nil
 	default:
 		return nil, fmt.Errorf("Unsupported report format: %s", request.Format)
 	}

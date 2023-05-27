@@ -2,7 +2,7 @@ module github.com/tommzn/hob-report-generator
 
 go 1.19
 
-require github.com/tommzn/hob-timetracker v1.4.6
+require github.com/tommzn/hob-timetracker v1.4.7
 
 require (
 	github.com/aws/aws-lambda-go v1.36.0 // indirect

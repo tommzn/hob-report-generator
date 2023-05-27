@@ -75,11 +75,11 @@ func (suite *BootstrapTestSuite) TestCreateCalendar() {
 
 func (suite *BootstrapTestSuite) TestNewReportFormatter() {
 
-	formatter1, err1 := newReportFormatter(&core.GenerateReportRequest{Format: core.ReportFormat_EXCEL})
+	formatter1, err1 := newReportFormatter(&core.GenerateReportRequest{Format: core.ReportFormat_EXCEL}, loggerForTest())
 	suite.NotNil(formatter1)
 	suite.Nil(err1)
 
-	formatter2, err2 := newReportFormatter(&core.GenerateReportRequest{Format: core.ReportFormat_NO_FORMAT})
+	formatter2, err2 := newReportFormatter(&core.GenerateReportRequest{Format: core.ReportFormat_NO_FORMAT}, loggerForTest())
 	suite.Nil(formatter2)
 	suite.NotNil(err2)
 }
